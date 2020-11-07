@@ -1,0 +1,19 @@
+.weekday {
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+.checkbox-group {
+  width: 288px;
+}
+
+.checkbox-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+}
+
+.checkbox-column.hover {
+  background-color: #efefef;
+}
