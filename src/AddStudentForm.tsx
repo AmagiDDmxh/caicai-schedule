@@ -16,8 +16,10 @@ import {
   CheckOutlined,
   CloseOutlined,
   PlusOutlined,
+  SaveOutlined,
 } from "@ant-design/icons";
 import { splitEvery, equals } from "ramda";
+import { v4 as uuid } from "uuid";
 
 import { Student } from "./models";
 import "./AddStudentForm.css";
@@ -39,15 +41,21 @@ const weekDays = [
   .map(shortWord);
 
 interface FormProps {
-  onSubmit: Function;
+  onAddStudent: Function;
+  onSaveStudent: Function;
   isEdit: boolean;
   student?: Student;
 }
 
-const AddStudentForm: React.FC<FormProps> = ({ onSubmit, student, isEdit }) => {
+const AddStudentForm: React.FC<FormProps> = ({
+  onAddStudent,
+  onSaveStudent,
+  student,
+  isEdit,
+}) => {
   const [form] = Form.useForm<Student>();
 
-  const [weekHover, setWeekHover] = useState<number | undefined>();
+  const [weekHover, setWeekHover] = useState<number>();
   const [selectedAvailableDays, setSelectedAvailableDays] = useState<number[]>(
     []
   );
@@ -65,16 +73,34 @@ const AddStudentForm: React.FC<FormProps> = ({ onSubmit, student, isEdit }) => {
 
   const months = generateMonth();
 
-  const onFinish = (student: Student) => {
+  const handleAdd = async () => {
+    const validate = await form.validateFields();
+    if (!validate) return;
+
     const formResult = {
-      ...student,
+      ...form.getFieldsValue(),
       unavailables: selectedAvailableDays,
     };
 
-    onSubmit(formResult);
-    if (!isEdit) {
-      onResetForm();
+    if (isEdit && formResult.id === student!.id) {
+      formResult.id = uuid();
     }
+
+    onAddStudent(formResult);
+
+    onResetForm();
+  };
+
+  const handleSaveChanges = async () => {
+    const validate = await form.validateFields();
+    if (!validate) return;
+
+    const formResult = {
+      ...form.getFieldsValue(),
+      unavailables: selectedAvailableDays,
+    };
+    onSaveStudent(formResult);
+    onResetForm();
   };
 
   const onResetForm = () => {
@@ -88,7 +114,6 @@ const AddStudentForm: React.FC<FormProps> = ({ onSubmit, student, isEdit }) => {
       name="student"
       layout="vertical"
       initialValues={{ isManager: false }}
-      onFinish={onFinish}
     >
       <Form.Item
         label="Name"
@@ -178,7 +203,6 @@ const AddStudentForm: React.FC<FormProps> = ({ onSubmit, student, isEdit }) => {
           className="checkbox-group"
           value={selectedAvailableDays}
           onChange={(availables) => {
-            console.log("checkboxes changed", availables);
             setSelectedAvailableDays(availables as number[]);
           }}
         >
@@ -231,14 +255,26 @@ const AddStudentForm: React.FC<FormProps> = ({ onSubmit, student, isEdit }) => {
       </Form.Item>
 
       <Divider />
+      {isEdit && (
+        <Form.Item>
+          <Button
+            type="primary"
+            block
+            icon={<SaveOutlined />}
+            onClick={handleSaveChanges}
+          >
+            Save Changes
+          </Button>
+        </Form.Item>
+      )}
       <Form.Item>
         <Button
           type="primary"
-          htmlType="submit"
           block
-          icon={isEdit ? <CloseOutlined /> : <PlusOutlined />}
+          icon={<PlusOutlined />}
+          onClick={handleAdd}
         >
-          {isEdit ? "Save Changes" : "Add Student"}
+          {isEdit ? "Duplicate Student" : "Add Student"}
         </Button>
       </Form.Item>
       <Form.Item>
@@ -249,7 +285,7 @@ const AddStudentForm: React.FC<FormProps> = ({ onSubmit, student, isEdit }) => {
           icon={<CloseOutlined />}
           onClick={onResetForm}
         >
-          Reset Student
+          Reset Form
         </Button>
       </Form.Item>
     </Form>

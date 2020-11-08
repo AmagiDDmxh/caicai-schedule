@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Badge, Button, Card, Row, Space, Table, Tag, Typography } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import {
+  DeleteOutlined,
+  EditOutlined,
   ExclamationCircleOutlined,
   SmileOutlined,
   UserOutlined,
@@ -9,16 +11,19 @@ import {
 
 import { Student } from "./models";
 import { generateMonth } from "./utils";
-import "./StudentList.css";
 
 interface Props {
   students: Student[];
   onSelectStudent: Function;
+  onRemoveStudent: Function;
 }
 
 const months = generateMonth();
 
-const generateColumns: (props: Props) => ColumnsType<Student> = (props) => [
+const generateColumns: (props: Props) => ColumnsType<Student> = ({
+  onSelectStudent,
+  onRemoveStudent,
+}) => [
   {
     title: "姓名",
     dataIndex: "name",
@@ -58,12 +63,18 @@ const generateColumns: (props: Props) => ColumnsType<Student> = (props) => [
     title: "Action",
     key: "action",
     render: (value, record) => {
-      console.log(value, record);
       return (
         <Space>
-          <Button type="link" onClick={() => props.onSelectStudent(record)}>
-            Edit Student
-            <Typography.Text>&nbsp;	{record.name}</Typography.Text>
+          <Button type="ghost" icon={<EditOutlined />} onClick={() => onSelectStudent(record)}>
+            Edit
+          </Button>
+          <Button
+            type="ghost"
+            icon={<DeleteOutlined />}
+            onClick={() => onRemoveStudent(record.id)}
+            danger
+          >
+            Remove
           </Button>
         </Space>
       );
@@ -72,7 +83,7 @@ const generateColumns: (props: Props) => ColumnsType<Student> = (props) => [
 ];
 
 const STUDENTS: Student[] = [
-  { name: "c", id: 2, building: 2, unavailables: [2, 3] },
+  { name: "c", id: "2", building: 2, unavailables: [2, 3] },
 ];
 
 const StudentList: React.FC<Props> = (props) => {
@@ -81,7 +92,12 @@ const StudentList: React.FC<Props> = (props) => {
   const columns = generateColumns(props);
 
   return (
-      <Table columns={columns} dataSource={students} size="small" />
+    <Table
+      title={() => <Typography.Title>Student List</Typography.Title>}
+      columns={columns}
+      dataSource={students}
+      size="small"
+    />
   );
 };
 

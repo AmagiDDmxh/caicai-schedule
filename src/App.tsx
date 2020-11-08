@@ -1,56 +1,82 @@
-import React, { useState } from "react";
-import { Card, Space, Layout, Button } from "antd";
+import React, { useEffect, useState } from "react";
+import { Card, Space, Layout, Button, Typography } from "antd";
 import { v4 as uuid } from "uuid";
 import { findIndex, propEq } from "ramda";
 
 import { Student } from "./models";
 import AddStudentForm from "./AddStudentForm";
 import StudentList from "./StudentList";
+import { STORE_KEY_STUDENT_LIST } from "./constants";
 import "./App.css";
+import StudentSchedules from "./StudentSchedules";
 
 const { Content, Sider, Header } = Layout;
 
-function App() {
-  const [students, setStudents] = useState<Array<Student>>([]);
-  const [isEdit, setIsEdit] = useState(false);
-  const [student, setStudent] = useState<Student>();
-  const [startImport, setStartImport] = useState(false)
+const studentList = JSON.parse(
+  window.localStorage.getItem(STORE_KEY_STUDENT_LIST) ?? "[]"
+);
 
-  const onFormSubmit = (formResult: Student) => {
+function App() {
+  const [students, setStudents] = useState<Array<Student>>(studentList);
+  const [isEdit, setIsEdit] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student>();
+  const [startImport, setStartImport] = useState(false);
+
+  useEffect(
+    () =>
+      localStorage.setItem(STORE_KEY_STUDENT_LIST, JSON.stringify(students)),
+    [students]
+  );
+
+  const handleAddStudent = (student: Student) => {
     const newStudent = {
-      ...formResult,
-      id: formResult.id ?? uuid(),
+      ...student,
+      id: student.id ?? uuid(),
     };
-    if (isEdit) {
-      const index = findIndex(propEq("id", student!.id), students);
-      const newStudents = [
-        ...students.slice(0, index),
-        newStudent,
-        ...students.slice(index + 1),
-      ];
-      setStudents(newStudents);
-      return;
-    }
     setStudents([...students, newStudent]);
+    setIsEdit(false);
+  };
+
+  const handleEditStudent = (newStudent: Student) => {
+    const index = students.indexOf(selectedStudent!);
+    setStudents([
+      ...students.slice(0, index),
+      newStudent,
+      ...students.slice(index + 1),
+    ]);
   };
 
   const selectStudent = (student: Student) => {
-    setStudent({ ...student });
+    setSelectedStudent({ ...student });
     setIsEdit(true);
+  };
+
+  const handleRemoveStudent = (id: string) => {
+    setStudents(students.filter((student) => student.id !== id));
   };
 
   return (
     <Layout className="App">
       {/* <Space align="center"> */}
       <Sider width="338">
-        <Space>
+        <Space direction="vertical">
+          <Card>
+            <Typography.Title level={5}>
+              Incoming Building List... :&gt;
+            </Typography.Title>
+            <Typography.Paragraph>
+              Developing... Wait for me
+            </Typography.Paragraph>
+            {/* <BuildingList /> */}
+          </Card>
           <Card>
             {/* {startImport && <ImportPanel /} */}
 
             <AddStudentForm
-              onSubmit={onFormSubmit}
+              onAddStudent={handleAddStudent}
+              onSaveStudent={handleEditStudent}
               isEdit={isEdit}
-              student={student}
+              student={selectedStudent}
             />
           </Card>
         </Space>
@@ -66,7 +92,13 @@ function App() {
             <Button type="link">Say hello to Amagi</Button>
           </Space>
         </Header>
-        <StudentList students={students} onSelectStudent={selectStudent} />
+        <StudentList
+          students={students}
+          onSelectStudent={selectStudent}
+          onRemoveStudent={handleRemoveStudent}
+        />
+
+        <StudentSchedules />
       </Content>
       {/* </Space> */}
 
