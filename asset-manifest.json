@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/schedule-for-caicai/static/css/main.e0354742.chunk.css",
+    "main.js": "/schedule-for-caicai/static/js/main.08e49ed3.chunk.js",
+    "main.js.map": "/schedule-for-caicai/static/js/main.08e49ed3.chunk.js.map",
+    "runtime-main.js": "/schedule-for-caicai/static/js/runtime-main.4d23e0e0.js",
+    "runtime-main.js.map": "/schedule-for-caicai/static/js/runtime-main.4d23e0e0.js.map",
+    "static/css/2.617c3bb8.chunk.css": "/schedule-for-caicai/static/css/2.617c3bb8.chunk.css",
+    "static/js/2.97fe2399.chunk.js": "/schedule-for-caicai/static/js/2.97fe2399.chunk.js",
+    "static/js/2.97fe2399.chunk.js.map": "/schedule-for-caicai/static/js/2.97fe2399.chunk.js.map",
+    "static/js/3.26831b7c.chunk.js": "/schedule-for-caicai/static/js/3.26831b7c.chunk.js",
+    "static/js/3.26831b7c.chunk.js.map": "/schedule-for-caicai/static/js/3.26831b7c.chunk.js.map",
+    "index.html": "/schedule-for-caicai/index.html",
+    "static/css/2.617c3bb8.chunk.css.map": "/schedule-for-caicai/static/css/2.617c3bb8.chunk.css.map",
+    "static/css/main.e0354742.chunk.css.map": "/schedule-for-caicai/static/css/main.e0354742.chunk.css.map",
+    "static/js/2.97fe2399.chunk.js.LICENSE.txt": "/schedule-for-caicai/static/js/2.97fe2399.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.4d23e0e0.js",
+    "static/css/2.617c3bb8.chunk.css",
+    "static/js/2.97fe2399.chunk.js",
+    "static/css/main.e0354742.chunk.css",
+    "static/js/main.08e49ed3.chunk.js"
+  ]
+}
