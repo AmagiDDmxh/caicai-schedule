@@ -1,0 +1,18 @@
+.ant-tag {
+  margin-bottom: 8px;
+}
+
+.edit-tag {
+  user-select: none;
+}
+
+.site-tag-plus {
+  background-color: #fff;
+  border-style: dashed;
+}
+
+.tag-input {
+  width: 78px;
+  margin-right: 8px;
+  vertical-align: top;
+}
