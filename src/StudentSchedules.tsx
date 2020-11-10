@@ -42,7 +42,7 @@ const BUILDINGS = [...Array(9)].map((_, index) => index + 1);
  * return integer x such that
  * min <= x < max
  */
-const random = (max: number, min = 0) =>
+export const random = (max: number, min = 0) =>
   Math.floor(Math.random() * (max - min)) + min;
 const generateArray = (n: number) => [...Array(n)];
 const shuffle = <T extends any>(arr: T[]) => {

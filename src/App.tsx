@@ -7,8 +7,9 @@ import { Student } from "./models";
 import AddStudentForm from "./AddStudentForm";
 import StudentList from "./StudentList";
 import { STORE_KEY_STUDENT_LIST } from "./constants";
-import "./App.css";
 import StudentSchedules from "./StudentSchedules";
+import "./App.css";
+import BuildingList from "./BuildingList";
 
 const { Content, Sider, Header } = Layout;
 
@@ -61,13 +62,13 @@ function App() {
       <Sider width="338">
         <Space direction="vertical">
           <Card>
-            <Typography.Title level={5}>
+            {/* <Typography.Title level={5}>
               Incoming Building List... :&gt;
             </Typography.Title>
             <Typography.Paragraph>
               Developing... Wait for me
-            </Typography.Paragraph>
-            {/* <BuildingList /> */}
+            </Typography.Paragraph> */}
+            <BuildingList />
           </Card>
           <Card>
             {/* {startImport && <ImportPanel /} */}

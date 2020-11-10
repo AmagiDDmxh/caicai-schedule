@@ -1,8 +1,8 @@
 {
-  "name": "caiying-schedule",
+  "name": "caicai-schedule",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://amagiddmxh.github.io/caicai-schedule/",
+  "homepage": "https://amagiddmxh.github.io/caicai-schedule",
   "dependencies": {
     "@ant-design/icons": "^4.2.2",
     "@types/faker": "^5.1.4",
