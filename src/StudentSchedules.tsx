@@ -10,7 +10,7 @@ interface TableProps {
   [buliding: string]: string[];
 }
 
-const generateColumns: (buildings: number[]) => ColumnsType<TableProps> = (
+const generateColumns: (buildings: string[]) => ColumnsType<TableProps> = (
   buildings
 ) => [
   {
@@ -35,7 +35,7 @@ const generateColumns: (buildings: number[]) => ColumnsType<TableProps> = (
   })),
 ];
 
-const BUILDINGS = [...Array(9)].map((_, index) => index + 1);
+const BUILDINGS = [...Array(9)].map((_, index) => (index + 1).toString());
 
 /**
  * take a max and a min
@@ -61,26 +61,27 @@ const shuffle = <T extends any>(arr: T[]) => {
 const operators = generateArray(16).map(() => faker.name.firstName());
 const randomPickTwo = <T extends any>(arr: T[]) => shuffle(arr).slice(0, 2);
 
-const generateBuildingOperators = () =>
-  shuffle(BUILDINGS)
+const generateBuildingOperators = (buildings = BUILDINGS) =>
+  shuffle(buildings)
     .slice(0)
     .map((building) => ({
       [`building_${building}`]: randomPickTwo(operators),
     }))
     .reduce((acc, cur) => ({ ...acc, ...cur }), {});
 
-const DATA = generateMonth().map((date) => ({
-  date,
-  ...generateBuildingOperators(),
-}));
+const DATA = (buildings: string[]) =>
+  generateMonth().map((date) => ({
+    date,
+    ...generateBuildingOperators(buildings),
+  }));
 
 interface StudentSchedulesProps {
   data?: TableProps[];
-  buildings?: number[];
+  buildings?: string[];
 }
 
 const StudentSchedules: FC<StudentSchedulesProps> = (props) => {
-  const { data = DATA, buildings = BUILDINGS } = props;
+  const { buildings = BUILDINGS, data = DATA(buildings) } = props;
 
   return (
     <Table

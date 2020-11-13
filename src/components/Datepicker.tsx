@@ -1,9 +1,12 @@
 import React, { useState, FC, useMemo } from "react";
 import { BorderInnerOutlined, CheckOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Col, Row } from "antd";
-import { equals, splitEvery } from "ramda";
+import { Button, Col, Row, Select, Typography } from "antd";
+import { equals, flatten, splitEvery } from "ramda";
 import { css } from "emotion";
 import { generateMonth } from "../utils";
+import "./Datepicker.css";
+
+const { Option } = Select;
 
 const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1);
 const shortWord = (str: string) => str.slice(0, 3) + ".";
@@ -20,19 +23,88 @@ const weekDayList = [
   .map(capitalize)
   .map(shortWord);
 
-interface WeekRowProps {
-  onSelectRow: Function;
-  row: number[];
+interface WorkdaySelectProps {
+  buildings: string[];
+  onChange: Function;
+  selectedBuilding?: string;
 }
 
-const WeekRow: FC<WeekRowProps> = ({ onSelectRow, row }) => {
-  const [rowHover, setRowHover] = useState(false);
+const WorkdaySelect: FC<WorkdaySelectProps> = ({
+  selectedBuilding,
+  buildings,
+  onChange,
+}) => {
+  return (
+    <select
+      className="date-select"
+      value={selectedBuilding ?? ""}
+      onChange={({ target: { value } }) => {
+        onChange(value);
+      }}
+    >
+      <option value="">-</option>
+      {buildings.map((building) => (
+        <option value={building} key={building}>
+          {building}
+        </option>
+      ))}
+    </select>
+  );
+};
+
+interface WeekRowProps {
+  row: DateSelect[];
+  buildings: string[];
+  last: boolean;
+  onChange: Function;
+  displaySelect?: boolean;
+  [rest: string]: any;
+}
+
+export interface DateSelect {
+  day: number;
+  building?: string;
+}
+
+const WeekRow: FC<WeekRowProps> = ({
+  onSelectRow,
+  row,
+  buildings,
+  last,
+  onChange,
+  displaySelect,
+  ...rest
+}) => {
+  // const [rowHover, setRowHover] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<DateSelect[]>(row);
+
+  const renderSelect = ({ day, building }: DateSelect, index: number) =>
+    displaySelect ? (
+      <WorkdaySelect
+        selectedBuilding={building}
+        buildings={buildings}
+        onChange={(value: string) => {
+          const newRows = [
+            ...selectedRows.slice(0, index),
+            { day, building: value },
+            ...selectedRows.slice(index + 1),
+          ];
+          setSelectedRows(newRows);
+          onChange(newRows);
+        }}
+      />
+    ) : (
+      <span>{building ? `No. ${building}` : "-"}</span>
+    );
 
   return (
     <Row
-    // key={`week-row-${index}`}
+      {...rest}
+      className={css`
+        flex-wrap: nowrap;
+      `}
     >
-      <Button
+      {/* <Button
         type="dashed"
         icon={<CheckOutlined />}
         onMouseEnter={() => setRowHover(true)}
@@ -52,24 +124,39 @@ const WeekRow: FC<WeekRowProps> = ({ onSelectRow, row }) => {
           // }
           // setSelectedAvailableDays(selectedAvailableDays.concat(aWeek));
         }}
-      ></Button>
+      ></Button> */}
 
-      {row.map((day) => {
-        const hover = rowHover;
+      {row.map(({ day, building }, index) => {
+        // const hover = rowHover;
         return (
-          <Col span={3} key={day}>
-            <Checkbox
+          <Col
+            // span={3}
+            style={{
+              // flex: "1 1 14.285%",
+              width: "14.25%",
+            }}
+            // flex={last ? undefined : 3}
+            key={day}
+          >
+            <div
               className={css`
+                border: 1px solid #ccc;
                 display: flex;
-                flex-direction: column;
                 align-items: center;
-                padding-top: 10px;
-                background-color: ${hover ? "#efefef" : "initial"};
+                flex-flow: column nowrap;
+                padding: 5px;
+                margin: 0 2px 1px;
               `}
-              value={day}
             >
-              {day}
-            </Checkbox>
+              <span
+                className={css`
+                  color: gray;
+                `}
+              >
+                {day}
+              </span>
+              {renderSelect({ day, building }, index)}
+            </div>
           </Col>
         );
       })}
@@ -78,60 +165,73 @@ const WeekRow: FC<WeekRowProps> = ({ onSelectRow, row }) => {
 };
 
 interface DatepickerProps {
-  onChange: Function;
+  onChange?: Function;
+  workdays: DateSelect[];
+  buildings: string[];
+  // default true
+  displaySelect?: boolean;
 }
 
 // TODO: Refactor row column picker
-const Datepicker: FC<DatepickerProps> = ({ onChange }) => {
-  const months = useMemo(() => generateMonth(), []);
-  const splitedMonths = useMemo(() => splitEvery(7, months), months);
+const Datepicker: FC<DatepickerProps> = ({
+  onChange,
+  workdays,
+  buildings,
+  displaySelect: displaySelectProp,
+}) => {
+  const splitedMonths = splitEvery(7, workdays);
 
-  const [workdays, setWorkdays] = useState<number[]>([]);
-  const [hoverColumn, setHoverColumn] = useState<number>();
-  const [selectedColumn, setSelectedColumn] = useState<number>();
+  const displaySelect = displaySelectProp ?? true;
 
-  const selectRow = (index: number) => setWorkdays(workdays);
-
-  const selectAll = () => {
-    if (equals(workdays, months)) {
-      return setWorkdays([]);
-    }
-    setWorkdays(months.slice());
+  const handleRowChange = (row: DateSelect[], index: number) => {
+    console.log('row change', row)
+    const newWorkdays = [
+      ...splitedMonths.slice(0, index),
+      row,
+      ...splitedMonths.slice(index + 1),
+    ];
+    onChange?.(flatten(newWorkdays));
   };
 
   return (
     <>
       <Row>
-        <Col span={3}>
+        {/* <Col span={3}>
           <Button
             type="dashed"
             icon={<BorderInnerOutlined />}
             onClick={selectAll}
           ></Button>
-        </Col>
+        </Col> */}
 
         {weekDayList.map((day, index) => (
           <Col
-            span={3}
+            flex={3}
             key={day}
-            onMouseEnter={() => setHoverColumn(index)}
-            onMouseLeave={() => setHoverColumn(undefined)}
-            onClick={() => setSelectedColumn(index)}
+            // onMouseEnter={() => setHoverColumn(index)}
+            // onMouseLeave={() => setHoverColumn(-1)}
+            // onClick={() => setSelectedColumn(index)}
             className="weekday"
           >
             {day}
           </Col>
         ))}
       </Row>
-      <Checkbox.Group
-        className="checkbox-group"
-        value={workdays}
-        onChange={(availables) => setWorkdays(availables as number[])}
-      >
-        {splitedMonths.map((week, index) => (
-          <WeekRow row={week} onSelectRow={() => selectRow(index)} />
+      <div className="">
+        {splitedMonths.map((week, rowIndex) => (
+          <WeekRow
+            className={css`
+              margin-bottom: 5px;
+            `}
+            row={week}
+            key={`week${rowIndex}`}
+            onChange={(rows: DateSelect[]) => handleRowChange(rows, rowIndex)}
+            buildings={buildings}
+            displaySelect={displaySelect}
+            last={rowIndex === splitedMonths.length - 1}
+          />
         ))}
-      </Checkbox.Group>
+      </div>
     </>
   );
 };

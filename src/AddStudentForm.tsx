@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Form,
   Input,
@@ -10,6 +10,7 @@ import {
   Switch,
   Row,
   Col,
+  Select,
 } from "antd";
 import {
   BorderInnerOutlined,
@@ -24,9 +25,12 @@ import { v4 as uuid } from "uuid";
 import { Student } from "./models";
 import "./AddStudentForm.css";
 import { generateMonth } from "./utils";
+import Datepicker, { DateSelect } from "./components/Datepicker";
 
 const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1);
 const shortWord = (str: string) => str.slice(0, 3) + ".";
+
+const { Option } = Select;
 
 const weekDays = [
   "monday",
@@ -45,6 +49,7 @@ interface FormProps {
   onSaveStudent: Function;
   isEdit: boolean;
   student?: Student;
+  buildings: string[];
 }
 
 const AddStudentForm: React.FC<FormProps> = ({
@@ -52,14 +57,14 @@ const AddStudentForm: React.FC<FormProps> = ({
   onSaveStudent,
   student,
   isEdit,
+  buildings,
 }) => {
+  const months = useMemo(() => generateMonth(), []);
   const [form] = Form.useForm<Student>();
 
-  const [weekHover, setWeekHover] = useState<number>();
-  const [selectedAvailableDays, setSelectedAvailableDays] = useState<number[]>(
-    []
+  const [selectedWorkdays, setSelectedWorkdays] = useState<DateSelect[]>(
+    months.map((day) => ({ day }))
   );
-  const [weekRowInterval, setWeekRowInterval] = useState<number[]>([]);
 
   useEffect(() => {
     if (student && isEdit) {
@@ -67,11 +72,9 @@ const AddStudentForm: React.FC<FormProps> = ({
         student
       ).map(([name, value]) => ({ name, value }));
       form.setFields(fields);
-      setSelectedAvailableDays(student.unavailables);
+      setSelectedWorkdays(student.workdays);
     }
-  }, [student, isEdit]);
-
-  const months = generateMonth();
+  }, [student, isEdit, form]);
 
   const handleAdd = async () => {
     const validate = await form.validateFields();
@@ -79,7 +82,7 @@ const AddStudentForm: React.FC<FormProps> = ({
 
     const formResult = {
       ...form.getFieldsValue(),
-      unavailables: selectedAvailableDays,
+      workdays: selectedWorkdays,
     };
 
     if (isEdit && formResult.id === student!.id) {
@@ -97,7 +100,7 @@ const AddStudentForm: React.FC<FormProps> = ({
 
     const formResult = {
       ...form.getFieldsValue(),
-      unavailables: selectedAvailableDays,
+      workdays: selectedWorkdays,
     };
     onSaveStudent(formResult);
     onResetForm();
@@ -105,7 +108,7 @@ const AddStudentForm: React.FC<FormProps> = ({
 
   const onResetForm = () => {
     form.resetFields();
-    setSelectedAvailableDays([]);
+    setSelectedWorkdays(months.map((day) => ({ day })));
   };
 
   return (
@@ -132,11 +135,18 @@ const AddStudentForm: React.FC<FormProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Living Building Number"
+        label="Living Building"
         name="building"
         rules={[{ required: true, message: "Missing building" }]}
       >
-        <InputNumber placeholder="Living Building Number" min={1} max={20} />
+        {/* <InputNumber placeholder="Living Building Number" min={1} max={20} /> */}
+        <Select>
+          {buildings.map((building) => (
+            <Option value={building} key={building}>
+              {building}
+            </Option>
+          ))}
+        </Select>
       </Form.Item>
 
       <Form.Item
@@ -147,8 +157,15 @@ const AddStudentForm: React.FC<FormProps> = ({
         <Input placeholder="Student ID" />
       </Form.Item>
 
-      <Form.Item name="unavailables" label="Unavailable Date">
-        <Row>
+      <Form.Item name="workdays" label="Workdays">
+        <Datepicker
+          buildings={buildings}
+          workdays={selectedWorkdays}
+          onChange={(workdays: DateSelect[]) => {
+            setSelectedWorkdays(workdays);
+          }}
+        ></Datepicker>
+        {/* <Row>
           <Col span={3}>
             <Button
               type="dashed"
@@ -251,7 +268,7 @@ const AddStudentForm: React.FC<FormProps> = ({
               })}
             </Row>
           ))}
-        </Checkbox.Group>
+        </Checkbox.Group> */}
       </Form.Item>
 
       <Divider />

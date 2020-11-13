@@ -1,10 +1,18 @@
-import React, { ChangeEventHandler, useRef, useState } from "react";
+import React, { ChangeEventHandler, useEffect, useRef, useState } from "react";
 import { Tag, Input, Tooltip } from "antd";
 import { PlusOutlined, RestOutlined } from "@ant-design/icons";
+import { css } from "emotion";
 import { random } from "./StudentSchedules";
 import "./BuildingList.css";
 
 type InputChangeHandler = ChangeEventHandler<HTMLInputElement>;
+
+// TODO: style ovoerride by antd, something to do with the style loaders
+const tagInputClass = css`
+  width: 78px !important;
+  margin-right: 8px !important;
+  vertical-align: top !important;
+`;
 
 const colors = [
   "magenta",
@@ -20,8 +28,12 @@ const colors = [
   "purple",
 ];
 
-const BuildingList = () => {
-  const [tags, setTags] = useState<string[]>([]);
+interface BuildingListProps {
+  buildings: string[];
+  onChange: Function;
+}
+
+const BuildingList: React.FC<BuildingListProps> = ({ buildings, onChange }) => {
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [editInputIndex, setEditInputIndex] = useState(-1);
@@ -29,14 +41,16 @@ const BuildingList = () => {
   const newInputRef = useRef<Input>(null);
   const editInputRef = useRef<Input>(null);
 
+  useEffect(() => {}, [buildings]);
+
   const handleEditInputChange: InputChangeHandler = ({ target: { value } }) => {
     setEditInputValue(value);
   };
 
   const handleEditInputConfirm = () => {
     if (editInputValue) {
-      setTags(
-        tags.map((tag, index) =>
+      onChange(
+        buildings.map((tag, index) =>
           index === editInputIndex ? editInputValue : tag
         )
       );
@@ -50,12 +64,12 @@ const BuildingList = () => {
   };
 
   const handleClose = (tag: string) => {
-    setTags(tags.filter((innerTag) => innerTag !== tag));
+    onChange(buildings.filter((innerTag) => innerTag !== tag));
   };
 
   const handleInputConfirm = () => {
-    if (inputValue && tags.indexOf(inputValue) === -1) {
-      setTags([...tags, inputValue]);
+    if (inputValue && buildings.indexOf(inputValue) === -1) {
+      onChange([...buildings, inputValue]);
       setInputVisible(false);
       setInputValue("");
     }
@@ -70,14 +84,14 @@ const BuildingList = () => {
   return (
     <>
       <div style={{ marginBottom: 10 }}>
-        {tags.map((tag, index) => {
+        {buildings.map((tag, index) => {
           if (editInputIndex === index) {
             return (
               <Input
                 ref={editInputRef}
                 key={tag}
                 size="small"
-                className="tag-input"
+                className={tagInputClass}
                 value={editInputValue}
                 onChange={handleEditInputChange}
                 onBlur={handleEditInputConfirm}
@@ -121,7 +135,7 @@ const BuildingList = () => {
           ref={newInputRef}
           type="text"
           size="small"
-          className="tag-input"
+          className={tagInputClass}
           value={inputValue}
           onChange={handleInputChange}
           onBlur={handleInputConfirm}
@@ -130,10 +144,10 @@ const BuildingList = () => {
       )}
       {!inputVisible && (
         <Tag className="site-tag-plus" onClick={showNewInput}>
-          <PlusOutlined /> New Tag
+          <PlusOutlined /> New Building
         </Tag>
       )}
-      <Tag className="site-tag-plus" onClick={showNewInput}>
+      <Tag className="site-tag-plus" onClick={() => onChange([])}>
         <RestOutlined /> Clean All
       </Tag>
     </>

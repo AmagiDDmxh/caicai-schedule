@@ -1,0 +1,15 @@
+.select-container {
+  border: 1px solid;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.date-select {
+  width: 30px;
+}
+
+.date-select .ant-select-selector {
+  padding: 0 !important;
+}

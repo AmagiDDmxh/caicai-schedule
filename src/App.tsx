@@ -1,32 +1,48 @@
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Card, Space, Layout, Button, Typography } from "antd";
 import { v4 as uuid } from "uuid";
-import { findIndex, propEq } from "ramda";
 
 import { Student } from "./models";
 import AddStudentForm from "./AddStudentForm";
 import StudentList from "./StudentList";
-import { STORE_KEY_STUDENT_LIST } from "./constants";
+import { STORE_KEY_STUDENT_LIST, STORE_KEY_BUILDING_LIST } from "./constants";
 import StudentSchedules from "./StudentSchedules";
-import "./App.css";
 import BuildingList from "./BuildingList";
+import "./App.css";
 
 const { Content, Sider, Header } = Layout;
 
-const studentList = JSON.parse(
-  window.localStorage.getItem(STORE_KEY_STUDENT_LIST) ?? "[]"
-);
+function useSemiPersistentState<T>(
+  key: string,
+  initialValue: T
+): [T, Dispatch<SetStateAction<T>>] {
+  const [value, setValue] = useState<typeof initialValue>(() => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+
+  // TODO: try with key
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [value]);
+
+  return [value, setValue];
+}
 
 function App() {
-  const [students, setStudents] = useState<Array<Student>>(studentList);
+  const [students, setStudents] = useSemiPersistentState<Student[]>(
+    STORE_KEY_STUDENT_LIST,
+    []
+  );
   const [isEdit, setIsEdit] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student>();
-  const [startImport, setStartImport] = useState(false);
-
-  useEffect(
-    () =>
-      localStorage.setItem(STORE_KEY_STUDENT_LIST, JSON.stringify(students)),
-    [students]
+  const [buildings, setBuildings] = useSemiPersistentState<string[]>(
+    STORE_KEY_BUILDING_LIST,
+    []
   );
 
   const handleAddStudent = (student: Student) => {
@@ -39,12 +55,13 @@ function App() {
   };
 
   const handleEditStudent = (newStudent: Student) => {
-    const index = students.indexOf(selectedStudent!);
-    setStudents([
-      ...students.slice(0, index),
-      newStudent,
-      ...students.slice(index + 1),
-    ]);
+    setStudents(
+      students.map((student) =>
+        student.id === newStudent.id ? newStudent : student
+      )
+    );
+    setIsEdit(false)
+    setSelectedStudent(undefined)
   };
 
   const selectStudent = (student: Student) => {
@@ -59,23 +76,21 @@ function App() {
   return (
     <Layout className="App">
       {/* <Space align="center"> */}
-      <Sider width="338">
+      <Sider width="440">
         <Space direction="vertical">
-          <Card>
-            {/* <Typography.Title level={5}>
-              Incoming Building List... :&gt;
-            </Typography.Title>
-            <Typography.Paragraph>
-              Developing... Wait for me
-            </Typography.Paragraph> */}
-            <BuildingList />
+          <Card style={{ width: 440 }}>
+            <BuildingList
+              buildings={buildings}
+              onChange={(buildings: string[]) => setBuildings(buildings)}
+            />
           </Card>
-          <Card>
+          <Card style={{ width: 440 }}>
             {/* {startImport && <ImportPanel /} */}
 
             <AddStudentForm
               onAddStudent={handleAddStudent}
               onSaveStudent={handleEditStudent}
+              buildings={buildings}
               isEdit={isEdit}
               student={selectedStudent}
             />
@@ -95,11 +110,12 @@ function App() {
         </Header>
         <StudentList
           students={students}
+          buildings={buildings}
           onSelectStudent={selectStudent}
           onRemoveStudent={handleRemoveStudent}
         />
 
-        <StudentSchedules />
+        <StudentSchedules buildings={buildings} />
       </Content>
       {/* </Space> */}
 

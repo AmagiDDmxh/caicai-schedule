@@ -1,8 +1,9 @@
+import { DateSelect } from "./components/Datepicker";
 
 export interface Student {
   name: string;
   building: number;
   id: string;
-  unavailables: number[];
+  workdays: DateSelect[];
   isManager?: boolean;
 }
