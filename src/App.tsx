@@ -63,24 +63,26 @@ function App() {
   );
 
   useEffect(() => {
-    const data: Schedule[] = MONTH.map((date) => ({ date }));
+    // const data: Schedule[] = MONTH.map((date) => ({ date }));
+    const data: Schedule[] = buildings.map((building) => ({ building }));
 
     for (const student of students) {
       for (const workday of student.workdays) {
         const { day, building } = workday;
         if (building) {
-          const operators = data[day - 1][`building_${building}`];
+          const index = buildings.indexOf(building);
+          const operators = data[index][day];
           if (operators && !operators.includes(student.name)) {
             operators.push(student.name);
           } else {
-            data[day - 1][`building_${building}`] = [student.name];
+            data[index][day] = [student.name];
           }
         }
       }
     }
 
-    // console.log(data);
-    setSchedules(data);
+    console.log(data);
+    // setSchedules(data);
   }, [students]);
 
   const handleAddStudent = (student: Student) => {

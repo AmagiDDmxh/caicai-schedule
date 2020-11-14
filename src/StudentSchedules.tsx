@@ -6,23 +6,22 @@ import Column from "antd/lib/table/Column";
 import { MONTH } from "./utils";
 
 export interface TableProps {
-  date: string | number;
-  [buliding: string]: any;
+  building: string;
+  [date: string]: any;
 }
 
 const generateColumns: (buildings: string[]) => ColumnsType<TableProps> = (
   buildings
 ) => [
   {
-    title: "Date",
-    dataIndex: "date",
+    title: "Building",
+    dataIndex: "building",
     fixed: "left",
-    width: 40,
+    width: 120,
   },
-  ...buildings.map((building) => ({
-    title: `Building ${building}`,
-    dataIndex: `building_${building}`,
-    width: 80,
+  ...MONTH.map(date => ({
+    title: date,
+    dataIndex: date,
     render(operators: string[] = []) {
       const [first, second] = operators;
 
@@ -34,6 +33,21 @@ const generateColumns: (buildings: string[]) => ColumnsType<TableProps> = (
       );
     },
   })),
+  // buildings.map((building) => ({
+  //   title: `Building ${building}`,
+  //   dataIndex: `building_${building}`,
+  //   width: 80,
+  //   render(operators: string[] = []) {
+  //     const [first, second] = operators;
+
+  //     return (
+  //       <>
+  //         <Typography.Paragraph>{first}</Typography.Paragraph>
+  //         <Typography.Paragraph>{second}</Typography.Paragraph>
+  //       </>
+  //     );
+  //   },
+  // })),
 ];
 
 // const BUILDINGS = [...Array(9)].map((_, index) => (index + 1).toString());
