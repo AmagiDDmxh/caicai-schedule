@@ -6,4 +6,5 @@ export interface Student {
   id: string;
   workdays: DateSelect[];
   isManager?: boolean;
+  total: number
 }

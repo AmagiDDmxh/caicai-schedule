@@ -1,15 +1,28 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Card, Space, Layout, Button, Typography } from "antd";
+import React, {
+  ChangeEventHandler,
+  Dispatch,
+  FormEventHandler,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
+import { Card, Space, Layout, Button, Typography, Input } from "antd";
 import { v4 as uuid } from "uuid";
 
 import { Student } from "./models";
 import AddStudentForm from "./AddStudentForm";
 import StudentList from "./StudentList";
-import { STORE_KEY_STUDENT_LIST, STORE_KEY_BUILDING_LIST } from "./constants";
-import StudentSchedules from "./StudentSchedules";
+import {
+  STORE_KEY_STUDENT_LIST,
+  STORE_KEY_BUILDING_LIST,
+  STORE_KEY_SCHEDULES,
+} from "./constants";
+import StudentSchedules, { TableProps as Schedule } from "./StudentSchedules";
 import BuildingList from "./BuildingList";
+import { generateMonth } from "./utils";
 import "./App.css";
 
+const month = generateMonth();
 const { Content, Sider, Header } = Layout;
 
 function useSemiPersistentState<T>(
@@ -39,16 +52,46 @@ function App() {
     []
   );
   const [isEdit, setIsEdit] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student>();
   const [buildings, setBuildings] = useSemiPersistentState<string[]>(
     STORE_KEY_BUILDING_LIST,
     []
   );
+  const [schedules, setSchedules] = useSemiPersistentState<Schedule[]>(
+    STORE_KEY_SCHEDULES,
+    []
+  );
+
+  useEffect(() => {
+    const data: Schedule[] = month.map((date) => ({ date }));
+
+    for (const student of students) {
+      for (const workday of student.workdays) {
+        const { day, building } = workday;
+        if (building) {
+          const operators = data[day - 1][`building_${building}`];
+          if (operators && !operators.includes(student.name)) {
+            operators.push(student.name);
+          } else {
+            data[day - 1][`building_${building}`] = [student.name];
+          }
+        }
+      }
+    }
+
+    // console.log(data);
+    setSchedules(data);
+  }, [students]);
 
   const handleAddStudent = (student: Student) => {
     const newStudent = {
       ...student,
       id: student.id ?? uuid(),
+      total: student.workdays.reduce(
+        (acc, { day, building }) => acc + (!!building ? 1 : 0),
+        0
+      ),
     };
     setStudents([...students, newStudent]);
     setIsEdit(false);
@@ -60,8 +103,8 @@ function App() {
         student.id === newStudent.id ? newStudent : student
       )
     );
-    setIsEdit(false)
-    setSelectedStudent(undefined)
+    setIsEdit(false);
+    setSelectedStudent(undefined);
   };
 
   const selectStudent = (student: Student) => {
@@ -71,6 +114,35 @@ function App() {
 
   const handleRemoveStudent = (id: string) => {
     setStudents(students.filter((student) => student.id !== id));
+  };
+
+  const handleImportStudentList: ChangeEventHandler<HTMLInputElement> = async (
+    e
+  ) => {
+    setIsLoading(true);
+    console.log("import", e);
+    const fileReader = new FileReader();
+    fileReader.onload = function (progressEvent) {
+      console.log("reading file:", progressEvent);
+      const result = JSON.parse(progressEvent.target!.result as string);
+      console.log(result);
+      const newStudents = result.map((student: Student) => {
+        const workdays = student.workdays ?? month.map((day) => ({ day }));
+        const id = student.id ?? uuid();
+        return {
+          ...student,
+          total: 0,
+          id,
+          workdays,
+        };
+      });
+      console.log(newStudents);
+      
+      // append?
+      setStudents(newStudents);
+      setIsLoading(false);
+    };
+    fileReader.readAsText(e.target.files![0]);
   };
 
   return (
@@ -102,20 +174,31 @@ function App() {
         <Header className="caiying-header">
           <Space>
             <Button type="primary">Auto Fill Blank</Button>
-            <Button type="ghost">Import Data</Button>
+            <Input
+              type="file"
+              onChange={handleImportStudentList}
+              multiple={false}
+              accept=".json"
+              placeholder="Import Data"
+            />
             <Button type="default">Export To Excel</Button>
             <Button type="text">Give It a Like</Button>
             <Button type="link">Say hello to Amagi</Button>
           </Space>
         </Header>
         <StudentList
+          loading={isLoading}
           students={students}
           buildings={buildings}
           onSelectStudent={selectStudent}
           onRemoveStudent={handleRemoveStudent}
         />
 
-        <StudentSchedules buildings={buildings} />
+        <StudentSchedules
+          loading={isLoading}
+          data={schedules}
+          buildings={buildings}
+        />
       </Content>
       {/* </Space> */}
 

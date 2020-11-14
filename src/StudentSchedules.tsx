@@ -5,9 +5,9 @@ import faker from "faker";
 import Column from "antd/lib/table/Column";
 import { generateMonth } from "./utils";
 
-interface TableProps {
-  date: any;
-  [buliding: string]: string[];
+export interface TableProps {
+  date: string | number;
+  [buliding: string]: any;
 }
 
 const generateColumns: (buildings: string[]) => ColumnsType<TableProps> = (
@@ -23,8 +23,9 @@ const generateColumns: (buildings: string[]) => ColumnsType<TableProps> = (
     title: `Building ${building}`,
     dataIndex: `building_${building}`,
     width: 80,
-    render(operators?: [string, string]) {
-      const [first, second] = operators!;
+    render(operators: string[] = []) {
+      const [first, second] = operators;
+
       return (
         <>
           <Typography.Paragraph>{first}</Typography.Paragraph>
@@ -35,7 +36,7 @@ const generateColumns: (buildings: string[]) => ColumnsType<TableProps> = (
   })),
 ];
 
-const BUILDINGS = [...Array(9)].map((_, index) => (index + 1).toString());
+// const BUILDINGS = [...Array(9)].map((_, index) => (index + 1).toString());
 
 /**
  * take a max and a min
@@ -44,50 +45,51 @@ const BUILDINGS = [...Array(9)].map((_, index) => (index + 1).toString());
  */
 export const random = (max: number, min = 0) =>
   Math.floor(Math.random() * (max - min)) + min;
-const generateArray = (n: number) => [...Array(n)];
-const shuffle = <T extends any>(arr: T[]) => {
-  const newArray = arr.slice();
-  const len = arr.length;
-  for (let i = 0; i < len; i++) {
-    const j = random(i);
-    if (j !== i) {
-      newArray[i] = newArray[j];
-    }
-    newArray[j] = arr[i];
-  }
-  return newArray;
-};
+// const generateArray = (n: number) => [...Array(n)];
+// const shuffle = <T extends any>(arr: T[]) => {
+//   const newArray = arr.slice();
+//   const len = arr.length;
+//   for (let i = 0; i < len; i++) {
+//     const j = random(i);
+//     if (j !== i) {
+//       newArray[i] = newArray[j];
+//     }
+//     newArray[j] = arr[i];
+//   }
+//   return newArray;
+// };
 
-const operators = generateArray(16).map(() => faker.name.firstName());
-const randomPickTwo = <T extends any>(arr: T[]) => shuffle(arr).slice(0, 2);
+// const operators = generateArray(16).map(() => faker.name.firstName());
+// const randomPickTwo = <T extends any>(arr: T[]) => shuffle(arr).slice(0, 2);
 
-const generateBuildingOperators = (buildings = BUILDINGS) =>
-  shuffle(buildings)
-    .slice(0)
-    .map((building) => ({
-      [`building_${building}`]: randomPickTwo(operators),
-    }))
-    .reduce((acc, cur) => ({ ...acc, ...cur }), {});
+// const generateBuildingOperators = (buildings = BUILDINGS) =>
+//   shuffle(buildings)
+//     .slice(0)
+//     .map((building) => ({
+//       [`building_${building}`]: randomPickTwo(operators),
+//     }))
+//     .reduce((acc, cur) => ({ ...acc, ...cur }), {});
 
-const DATA = (buildings: string[]) =>
-  generateMonth().map((date) => ({
-    date,
-    ...generateBuildingOperators(buildings),
-  }));
+// const DATA = (buildings: string[]) =>
+//   generateMonth().map((date) => ({
+//     date,
+//     ...generateBuildingOperators(buildings),
+//   }));
 
 interface StudentSchedulesProps {
-  data?: TableProps[];
-  buildings?: string[];
+  data: TableProps[];
+  buildings: string[];
+  loading: boolean;
 }
 
 const StudentSchedules: FC<StudentSchedulesProps> = (props) => {
-  const { buildings = BUILDINGS, data = DATA(buildings) } = props;
+  const { buildings, data, loading } = props;
 
   return (
     <Table
-      title={() => (
-        <Typography.Title>Students Schedule with fake data</Typography.Title>
-      )}
+      title={() => <Typography.Title>Student Schedules</Typography.Title>}
+      loading={loading}
+      pagination={{ pageSize: 32, hideOnSinglePage: true }}
       columns={generateColumns(buildings)}
       dataSource={data as any}
       scroll={{ x: 1280, y: 800 }}

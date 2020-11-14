@@ -18,10 +18,17 @@ interface Props {
   onSelectStudent: Function;
   onRemoveStudent: Function;
   buildings: string[];
+  loading: boolean;
 }
 
 const StudentList: React.FC<Props> = (props) => {
-  const { students, onSelectStudent, onRemoveStudent, buildings } = props;
+  const {
+    students,
+    onSelectStudent,
+    onRemoveStudent,
+    buildings,
+    loading,
+  } = props;
 
   const columns = [
     {
@@ -35,14 +42,19 @@ const StudentList: React.FC<Props> = (props) => {
       key: "id",
     },
     // {
-    //   title: "住址",
+    //   title: "Building",
     //   dataIndex: "building",
     //   key: "building",
+    //   render(building: string) {
+    //     return <span style={{ color: "blueviolet" }}>{building}</span>;
+    //   },
     // },
+
     {
       title: "Workdays",
       dataIndex: "workdays",
       key: "workdays",
+      width: 800,
       render: (workdays: DateSelect[]) => (
         <>
           <Datepicker
@@ -52,6 +64,11 @@ const StudentList: React.FC<Props> = (props) => {
           ></Datepicker>
         </>
       ),
+    },
+    {
+      title: "Total Workday",
+      dataIndex: "total",
+      key: "total",
     },
     {
       title: "Action",
@@ -86,6 +103,8 @@ const StudentList: React.FC<Props> = (props) => {
       columns={columns}
       dataSource={students}
       size="small"
+      loading={loading}
+      pagination={{ hideOnSinglePage: true }}
     />
   );
 };

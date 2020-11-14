@@ -211,7 +211,7 @@ const Datepicker: FC<DatepickerProps> = ({
             // onMouseEnter={() => setHoverColumn(index)}
             // onMouseLeave={() => setHoverColumn(-1)}
             // onClick={() => setSelectedColumn(index)}
-            className="weekday"
+            className={css`text-align: center;`}
           >
             {day}
           </Col>

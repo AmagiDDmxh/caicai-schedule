@@ -1,2 +1,3 @@
 export const STORE_KEY_STUDENT_LIST = '__STUDENT_LIST__';
 export const STORE_KEY_BUILDING_LIST = '__BUILDING_LIST__';
+export const STORE_KEY_SCHEDULES = '__SCHEDULES__';
