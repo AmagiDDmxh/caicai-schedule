@@ -1,9 +1,9 @@
 import React, { useState, FC, useMemo } from "react";
 import { BorderInnerOutlined, CheckOutlined } from "@ant-design/icons";
 import { Button, Col, Row, Select, Typography } from "antd";
-import { equals, flatten, splitEvery } from "ramda";
+import { equals, flatten, splitEvery, move } from "ramda";
+import dj from "dayjs";
 import { css } from "emotion";
-import { generateMonth } from "../utils";
 import "./Datepicker.css";
 
 const { Option } = Select;
@@ -22,6 +22,21 @@ const weekDayList = [
 ]
   .map(capitalize)
   .map(shortWord);
+
+function getWeekdays(
+  weekday = dj()
+    .month(dj().month() - 1)
+    .date(26)
+    .day()
+) {
+  let weekdays = weekDayList;
+  if (weekday === 0) return move(-1, 0, weekdays);
+  let i = 1;
+  while (i++ < weekday) {
+    weekdays = move(0, -1, weekdays);
+  }
+  return weekdays;
+}
 
 interface WorkdaySelectProps {
   buildings: string[];
@@ -180,11 +195,12 @@ const Datepicker: FC<DatepickerProps> = ({
   displaySelect: displaySelectProp,
 }) => {
   const splitedMonths = splitEvery(7, workdays);
+  const weekdays = getWeekdays();
 
   const displaySelect = displaySelectProp ?? true;
 
   const handleRowChange = (row: DateSelect[], index: number) => {
-    console.log('row change', row)
+    console.log("row change", row);
     const newWorkdays = [
       ...splitedMonths.slice(0, index),
       row,
@@ -204,14 +220,16 @@ const Datepicker: FC<DatepickerProps> = ({
           ></Button>
         </Col> */}
 
-        {weekDayList.map((day, index) => (
+        {weekdays.map((day, index) => (
           <Col
             flex={3}
             key={day}
             // onMouseEnter={() => setHoverColumn(index)}
             // onMouseLeave={() => setHoverColumn(-1)}
             // onClick={() => setSelectedColumn(index)}
-            className={css`text-align: center;`}
+            className={css`
+              text-align: center;
+            `}
           >
             {day}
           </Col>

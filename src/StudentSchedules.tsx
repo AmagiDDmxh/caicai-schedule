@@ -3,7 +3,7 @@ import { Table, Typography } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import faker from "faker";
 import Column from "antd/lib/table/Column";
-import { generateMonth } from "./utils";
+import { MONTH } from "./utils";
 
 export interface TableProps {
   date: string | number;

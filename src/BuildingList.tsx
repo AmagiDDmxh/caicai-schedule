@@ -41,8 +41,6 @@ const BuildingList: React.FC<BuildingListProps> = ({ buildings, onChange }) => {
   const newInputRef = useRef<Input>(null);
   const editInputRef = useRef<Input>(null);
 
-  useEffect(() => {}, [buildings]);
-
   const handleEditInputChange: InputChangeHandler = ({ target: { value } }) => {
     setEditInputValue(value);
   };
@@ -78,8 +76,20 @@ const BuildingList: React.FC<BuildingListProps> = ({ buildings, onChange }) => {
   const showNewInput = () => {
     setInputVisible(true);
     // newInputRef.current && newInputRef.current.focus();
-    setTimeout(() => newInputRef.current?.focus(), 0);
+    // setTimeout(() => newInputRef.current?.focus(), 0);
   };
+
+  useEffect(() => {
+    if (inputVisible && newInputRef.current) {
+      newInputRef.current.focus()
+    }
+  }, [inputVisible])
+
+  useEffect(() => {
+    if (editInputIndex > -1 && editInputRef.current) {
+      editInputRef.current.focus()
+    }
+  }, [editInputIndex])
 
   return (
     <>

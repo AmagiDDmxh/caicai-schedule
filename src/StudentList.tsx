@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 
 import { Student } from "./models";
-import { generateMonth } from "./utils";
+import { MONTH } from "./utils";
 import Datepicker, { DateSelect } from "./components/Datepicker";
 
 interface Props {

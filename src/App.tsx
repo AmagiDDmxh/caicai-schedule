@@ -19,10 +19,9 @@ import {
 } from "./constants";
 import StudentSchedules, { TableProps as Schedule } from "./StudentSchedules";
 import BuildingList from "./BuildingList";
-import { generateMonth } from "./utils";
+import { MONTH } from "./utils";
 import "./App.css";
 
-const month = generateMonth();
 const { Content, Sider, Header } = Layout;
 
 function useSemiPersistentState<T>(
@@ -64,7 +63,7 @@ function App() {
   );
 
   useEffect(() => {
-    const data: Schedule[] = month.map((date) => ({ date }));
+    const data: Schedule[] = MONTH.map((date) => ({ date }));
 
     for (const student of students) {
       for (const workday of student.workdays) {
@@ -119,30 +118,30 @@ function App() {
   const handleImportStudentList: ChangeEventHandler<HTMLInputElement> = async (
     e
   ) => {
-    setIsLoading(true);
-    console.log("import", e);
-    const fileReader = new FileReader();
-    fileReader.onload = function (progressEvent) {
-      console.log("reading file:", progressEvent);
-      const result = JSON.parse(progressEvent.target!.result as string);
-      console.log(result);
-      const newStudents = result.map((student: Student) => {
-        const workdays = student.workdays ?? month.map((day) => ({ day }));
-        const id = student.id ?? uuid();
-        return {
-          ...student,
-          total: 0,
-          id,
-          workdays,
-        };
-      });
-      console.log(newStudents);
-      
-      // append?
-      setStudents(newStudents);
-      setIsLoading(false);
-    };
-    fileReader.readAsText(e.target.files![0]);
+    if (e.target.files?.[0]) {
+      setIsLoading(true);
+      const fileReader = new FileReader();
+      fileReader.onload = function (progressEvent) {
+        const result = JSON.parse(progressEvent.target!.result as string);
+        console.log(result);
+        const newStudents = result.map((student: Student) => {
+          const workdays = student.workdays ?? MONTH.map((day) => ({ day }));
+          const id = student.id ?? uuid();
+          return {
+            ...student,
+            total: 0,
+            id,
+            workdays,
+          };
+        });
+        // console.log(newStudents);
+
+        // append?
+        setStudents(newStudents);
+        setIsLoading(false);
+      };
+      fileReader.readAsText(e.target.files![0]);
+    }
   };
 
   return (
@@ -173,7 +172,7 @@ function App() {
       <Content>
         <Header className="caiying-header">
           <Space>
-            <Button type="primary">Auto Fill Blank</Button>
+            <Button type="primary">Schedule student</Button>
             <Input
               type="file"
               onChange={handleImportStudentList}
@@ -182,8 +181,8 @@ function App() {
               placeholder="Import Data"
             />
             <Button type="default">Export To Excel</Button>
-            <Button type="text">Give It a Like</Button>
-            <Button type="link">Say hello to Amagi</Button>
+            {/* <Button type="text">Give It a Like</Button> */}
+            {/* <Button type="link">Say hello to Amagi</Button> */}
           </Space>
         </Header>
         <StudentList

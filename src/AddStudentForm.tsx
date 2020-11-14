@@ -24,7 +24,7 @@ import { v4 as uuid } from "uuid";
 
 import { Student } from "./models";
 import "./AddStudentForm.css";
-import { generateMonth } from "./utils";
+import { MONTH } from "./utils";
 import Datepicker, { DateSelect } from "./components/Datepicker";
 
 const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1);
@@ -59,11 +59,12 @@ const AddStudentForm: React.FC<FormProps> = ({
   isEdit,
   buildings,
 }) => {
-  const months = useMemo(() => generateMonth(), []);
+  const [genderValue, setGenderValue] = useState("She");
+  const [unavailables, setUnavailables] = useState<number[]>([]);
   const [form] = Form.useForm<Student>();
 
   const [selectedWorkdays, setSelectedWorkdays] = useState<DateSelect[]>(
-    months.map((day) => ({ day }))
+    MONTH.map((day) => ({ day }))
   );
 
   useEffect(() => {
@@ -77,6 +78,8 @@ const AddStudentForm: React.FC<FormProps> = ({
   }, [student, isEdit, form]);
 
   const handleAdd = async () => {
+    console.log(form.getFieldsValue());
+
     const validate = await form.validateFields();
     if (!validate) return;
 
@@ -108,7 +111,7 @@ const AddStudentForm: React.FC<FormProps> = ({
 
   const onResetForm = () => {
     form.resetFields();
-    setSelectedWorkdays(months.map((day) => ({ day })));
+    setSelectedWorkdays(MONTH.map((day) => ({ day })));
   };
 
   return (
@@ -126,13 +129,28 @@ const AddStudentForm: React.FC<FormProps> = ({
         <Input placeholder="Name of the student" />
       </Form.Item>
 
-      <Form.Item
-        name="isManager"
-        valuePropName="checked"
-        label="Is She or He a Manager?"
-      >
-        <Switch />
-      </Form.Item>
+      <Row gutter={100}>
+        <Col>
+          <Form.Item
+            name="gender"
+            valuePropName="checked"
+            label="Gender: Girl/Boy"
+          >
+            <Switch
+              onChange={(checked) => setGenderValue(checked ? "He" : "She")}
+            />
+          </Form.Item>
+        </Col>
+        <Col>
+          <Form.Item
+            name="isManager"
+            valuePropName="checked"
+            label={`Is ${genderValue} a Manager?`}
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
+      </Row>
 
       <Form.Item
         label="Living Building"
@@ -157,6 +175,30 @@ const AddStudentForm: React.FC<FormProps> = ({
         <Input placeholder="Student ID" />
       </Form.Item>
 
+      <Form.Item label="Unavailable weekday" name="unavailable">
+        <Checkbox.Group
+          onChange={(values) => {
+            // console.log(values);
+            setUnavailables(values as number[]);
+          }}
+        >
+          <Row>
+            {weekDays.map((day, index) => (
+              <Col flex={3} key={day}>
+                <Checkbox
+                  value={index}
+                  disabled={
+                    unavailables.length === 2 && !unavailables.includes(index)
+                  }
+                >
+                  {day}
+                </Checkbox>
+              </Col>
+            ))}
+          </Row>
+        </Checkbox.Group>
+      </Form.Item>
+
       <Form.Item name="workdays" label="Workdays">
         <Datepicker
           buildings={buildings}
@@ -165,111 +207,9 @@ const AddStudentForm: React.FC<FormProps> = ({
             setSelectedWorkdays(workdays);
           }}
         ></Datepicker>
-        {/* <Row>
-          <Col span={3}>
-            <Button
-              type="dashed"
-              icon={<BorderInnerOutlined />}
-              onClick={() => {
-                if (equals(selectedAvailableDays, months)) {
-                  return setSelectedAvailableDays([]);
-                }
-                setSelectedAvailableDays(months.slice());
-              }}
-            ></Button>
-          </Col>
-
-          {weekDays.map((day, index) => {
-            const weekday = (index + 1) % 7;
-
-            return (
-              <Col
-                span={3}
-                key={day}
-                onMouseEnter={() => setWeekHover(weekday)}
-                onMouseLeave={() => setWeekHover(undefined)}
-                onClick={() => {
-                  const availables = months.filter(
-                    (date) => date % 7 === weekday
-                  );
-                  // if already has
-                  if (
-                    availables.every((date) =>
-                      selectedAvailableDays.includes(date)
-                    )
-                  ) {
-                    return setSelectedAvailableDays(
-                      selectedAvailableDays.filter(
-                        (date) => !availables.includes(date)
-                      )
-                    );
-                  }
-                  setSelectedAvailableDays([
-                    ...selectedAvailableDays,
-                    ...availables,
-                  ]);
-                }}
-                className="weekday"
-              >
-                {day}
-              </Col>
-            );
-          })}
-        </Row>
-        <Checkbox.Group
-          className="checkbox-group"
-          value={selectedAvailableDays}
-          onChange={(availables) => {
-            setSelectedAvailableDays(availables as number[]);
-          }}
-        >
-          {splitEvery(7, months).map((week, index) => (
-            <Row key={`week-row-${index}`}>
-              <Button
-                type="dashed"
-                icon={<CheckOutlined />}
-                onMouseEnter={() =>
-                  setWeekRowInterval([index * 7 + 1, index * 7 + 7])
-                }
-                onMouseLeave={() => setWeekRowInterval([])}
-                onClick={() => {
-                  const aWeek = Array(7)
-                    .fill(0)
-                    .map((_, i) => index * 7 + i + 1);
-
-                  if (
-                    aWeek.every((date) => selectedAvailableDays.includes(date))
-                  ) {
-                    return setSelectedAvailableDays(
-                      selectedAvailableDays.filter(
-                        (date) => !aWeek.includes(date)
-                      )
-                    );
-                  }
-                  setSelectedAvailableDays(selectedAvailableDays.concat(aWeek));
-                }}
-              ></Button>
-              {week.map((day) => {
-                const [startInterval, endInterval] = weekRowInterval!;
-
-                const hover =
-                  day % 7 === weekHover ||
-                  (startInterval <= day && day <= endInterval);
-                return (
-                  <Col span={3} key={day}>
-                    <Checkbox
-                      className={`checkbox-column ${hover ? "hover" : ""}`}
-                      value={day}
-                    >
-                      {day}
-                    </Checkbox>
-                  </Col>
-                );
-              })}
-            </Row>
-          ))}
-        </Checkbox.Group> */}
       </Form.Item>
+
+      <Form.Item></Form.Item>
 
       <Divider />
       {isEdit && (
